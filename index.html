@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventPro | Enterprise Task Suite</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="logo-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
+            <span>EventPro <small>v2.0</small></span>
+        </div>
+        <nav class="side-nav">
+            <button class="nav-item active" onclick="switchView('dashboard-view', this)">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </button>
+            <button class="nav-item" onclick="switchView('host-view', this)">
+                <i class="fa-solid fa-list-check"></i> Host Dashboard
+            </button>
+            <button class="nav-item" onclick="switchView('volunteer-view', this)">
+                <i class="fa-solid fa-user-group"></i> Volunteer Portal
+            </button>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn-clear" onclick="clearAllData()">Clear Local Database</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="main-header">
+            <div class="header-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="task-search" placeholder="Search tasks or volunteers..." onkeyup="handleSearch()">
+            </div>
+            <div class="header-actions">
+                <div class="status-dot"></div>
+                <span id="storage-indicator">Cloud Synced (Local)</span>
+                <div class="user-avatar">Admin</div>
+            </div>
+        </header>
+
+        <section id="dashboard-view" class="view active">
+            <div class="welcome-banner">
+                <h1>Event Pulse Control</h1>
+                <p>Welcome back. Here is your event's current health status.</p>
+            </div>
+
+            <div class="stats-container">
+                <div class="glass-card stat-box">
+                    <span class="label">Total Tasks</span>
+                    <h2 id="dash-total">0</h2>
+                    <div class="mini-graph"><div class="bar" style="width: 100%"></div></div>
+                </div>
+                <div class="glass-card stat-box">
+                    <span class="label">Work In Progress</span>
+                    <h2 id="dash-wip">0</h2>
+                    <div class="mini-graph"><div class="bar wip" id="wip-bar"></div></div>
+                </div>
+                <div class="glass-card stat-box">
+                    <span class="label">Completed</span>
+                    <h2 id="dash-done">0</h2>
+                    <div class="mini-graph"><div class="bar done" id="done-bar"></div></div>
+                </div>
+            </div>
+
+            <div class="chart-area glass-card">
+                <div class="chart-header">
+                    <h3>Overall Project Velocity</h3>
+                    <span id="percent-label">0%</span>
+                </div>
+                <div class="master-progress">
+                    <div id="master-fill" class="fill"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="host-view" class="view">
+            <div class="section-header">
+                <div>
+                    <h1>Management Board</h1>
+                    <p>Assign tasks and monitor volunteer status.</p>
+                </div>
+                <button class="btn btn-primary" onclick="toggleModal(true)">
+                    <i class="fa-solid fa-plus"></i> Create New Task
+                </button>
+            </div>
+
+            <div class="filter-bar">
+                <button class="f-btn active" onclick="setFilter('all', this)">All</button>
+                <button class="f-btn" onclick="setFilter('Not Started', this)">Pending</button>
+                <button class="f-btn" onclick="setFilter('Work in Progress', this)">Active</button>
+                <button class="f-btn" onclick="setFilter('Work Done', this)">Resolved</button>
+            </div>
+
+            <div id="host-grid" class="dynamic-grid"></div>
+        </section>
+
+        <section id="volunteer-view" class="view">
+            <div class="section-header">
+                <h1>Volunteer Access</h1>
+                <p>Select your profile to update your task progress.</p>
+            </div>
+            <div id="volunteer-roster" class="roster-layout"></div>
+        </section>
+
+        <section id="volunteer-workspace-view" class="view">
+            <div class="section-header">
+                <button class="btn-back" onclick="switchView('volunteer-view')">
+                    <i class="fa-solid fa-chevron-left"></i> Change User
+                </button>
+                <h1 id="active-user-display">My Workspace</h1>
+            </div>
+            <div id="volunteer-tasks" class="task-stack"></div>
+        </section>
+    </main>
+
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modal-title">Task Configuration</h2>
+                <button class="close-btn" onclick="toggleModal(false)">&times;</button>
+            </div>
+            <form id="task-form">
+                <input type="hidden" id="edit-id">
+                <div class="input-group">
+                    <label>Task Heading</label>
+                    <input type="text" id="t-title" required placeholder="e.g. Stage Lighting Setup">
+                </div>
+                <div class="input-group">
+                    <label>Detailed Brief</label>
+                    <textarea id="t-desc" required placeholder="Explain the requirements..."></textarea>
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>Assignees (Comma-separated)</label>
+                        <input type="text" id="t-volunteers" required placeholder="John, Mike, Sarah">
+                    </div>
+                    <div class="input-group">
+                        <label>Priority Level</label>
+                        <select id="t-priority">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Target Deadline</label>
+                    <input type="date" id="t-deadline">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="toggleModal(false)">Discard</button>
+                    <button type="submit" class="btn btn-primary">Deploy Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
